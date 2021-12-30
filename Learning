@@ -1,0 +1,283 @@
+# Python program to simulate playing game of 21
+
+# import modules
+import random
+
+# make a deck of cards
+deck = [2,3,4,5,6,7,8,9,10,10,10,10,11,2,3,4,5,6,7,8,9,10,10,10,10,11,2,3,4,5,6,7,8,9,10,10,10,10,11,2,3,4,5,6,7,8,9,10,10,10,10,11]
+
+# create peformance tracking matrices: hit versus stand
+hitArray=[[0 for j in range(19)] for i in range(10)]
+for i in range(len(hitArray)):
+ for j in range(len(hitArray[i])):
+  hitArray[i][j] = 0,0,0
+
+standArray=[[0 for j in range(19)] for i in range(10)]
+for i in range(len(standArray)):
+ for j in range(len(standArray[i])):
+  standArray[i][j] = 0,0,0
+
+# track number of wins
+player_won = 0
+dealer_won = 0
+ties = 0
+
+# main logic
+for i in range(100000):
+
+    # initialize local (temporary) variables for each hand
+    coin = 0
+    hit = False
+    counter = 0
+    decision = ""
+    player_aces = 0
+    dealer_aces = 0
+    w = 0
+    l = 0
+    t = 0
+    w1 = 0
+    l1 = 0
+    t1 = 0
+    w2 = 0
+    l2 = 0
+    t2 = 0
+    hit_calc = 0
+    stand_calc = 0
+    
+    # shuffle the cards
+    random.shuffle(deck)
+
+    # Deal Hand
+    player_hand = deck[0] + deck[1]
+    dealer_hand = deck[2] + deck[3]
+
+    # Store matrix coordinates for initial player hand and initial dealer up card
+    i_player_hand = player_hand - 4
+    i_dealer_hand = deck[2] - 2
+
+    # Count Aces
+    if deck[0] == 11:
+        player_aces = player_aces + 1
+    if deck[1] == 11:
+        player_aces = player_aces + 1
+    if deck[2] == 11:
+        dealer_aces = dealer_aces + 1
+    if deck[3] == 11:
+        dealer_aces = dealer_aces + 1
+        
+    # Check if player has 21 on initial draw
+    if player_hand == 21:
+        hit = False
+        decision = "stand"
+    else:
+        
+        # Player Logic - Check historical results of starting hand
+        w1 = hitArray[i_dealer_hand][i_player_hand][0]
+        l1 = hitArray[i_dealer_hand][i_player_hand][1]
+        t1 = hitArray[i_dealer_hand][i_player_hand][2]
+            
+        w2 = standArray[i_dealer_hand][i_player_hand][0]
+        l2 = standArray[i_dealer_hand][i_player_hand][1]
+        t2 = standArray[i_dealer_hand][i_player_hand][2]
+
+        # if not significant sample in both arrays then randomly decide
+        if ((w1 + l1 + t1) < 10) or ((w2 + l2 + t2) < 10):
+            coin = random.randint(1,2)
+            if coin == 1:
+                hit = True
+                player_hand = player_hand + deck[4+counter]
+                counter = counter + 1
+                decision = "hit"
+            else:
+                hit = False
+                decision = "stand"
+            
+        # else compare results of hit versus stand
+        else:
+            hit_calc = (w1 + .5*t1) / (w1 + l1 + t1)
+            stand_calc = (w2 + .5*t2) / (w2 + l2 + t2)
+                
+            # if hit value equals stand value then randomly decide
+            if hit_calc == stand_calc:
+                coin = random.randint(1,2)
+                if coin == 1:
+                    hit = True
+                    player_hand = player_hand + deck[4+counter]
+                    counter = counter + 1
+                    decision = "hit"
+                else:
+                    hit = False
+                    decision = "stand"
+                
+            # if hit value is greater than stand value then hit else stand
+            if hit_calc > stand_calc:
+                hit = True
+                player_hand = player_hand + deck[4+counter]
+                counter = counter + 1
+                decision = "hit"
+            else:
+                hit = False
+                decision = "stand"
+
+        # If hand is > 21 then check for Aces
+        while player_hand > 21 and player_aces > 0:
+            player_hand = player_hand - 10
+            player_aces = player_aces - 1
+    				
+        # Check to see if player wants to hit again    
+        while hit == True:
+		
+            # If player hand > 21 then stop hand
+            if player_hand > 21:
+                hit = False
+            else:    
+                w1 = hitArray[i_dealer_hand][player_hand - 4][0]
+                l1 = hitArray[i_dealer_hand][player_hand - 4][1]
+                t1 = hitArray[i_dealer_hand][player_hand - 4][2]
+            
+                w2 = standArray[i_dealer_hand][player_hand - 4][0]
+                l2 = standArray[i_dealer_hand][player_hand - 4][1]
+                t2 = standArray[i_dealer_hand][player_hand - 4][2]
+
+                # if not significant sample in both arrays then randomly decide
+                if ((w1 + l1 + t1) < 10) or ((w2 + l2 + t2) < 10):
+                    coin = random.randint(1,2)
+                    if coin == 1:
+                        hit = True
+                        player_hand = player_hand + deck[4+counter]
+                        counter = counter + 1
+                    else:
+                        hit = False
+            
+                # else compare results of hit versus stand
+                else:
+                    hit_calc = (w1 + .5*t1) / (w1 + l1 + t1)
+                    stand_calc = (w2 + .5*t2) / (w2 + l2 + t2)
+                
+                # if hit value equals stand value then randomly decide
+                if hit_calc == stand_calc:
+                    coin = random.randint(1,2)
+                    if coin == 1:
+                        hit = True
+                        player_hand = player_hand + deck[4+counter]
+                        counter = counter + 1
+                    else:
+                        hit = False
+            
+                # if hit value is greater than stand value then hit else stand
+                if hit_calc > stand_calc:
+                    hit = True
+                    player_hand = player_hand + deck[4+counter]
+                    counter = counter + 1
+                else:
+                    hit = False       
+     
+    # Dealer Logic - if hand < 17 then hit
+    while dealer_hand > 21 and dealer_aces > 0:
+        dealer_hand = dealer_hand - 10
+        dealer_aces = dealer_aces - 1
+    while dealer_hand < 17:
+        dealer_hand = dealer_hand + deck[4+counter]
+        if deck[4+counter] == 11:
+            dealer_aces = dealer_aces + 1
+        while dealer_hand > 21 and dealer_aces > 0:
+                dealer_hand = dealer_hand - 10
+                dealer_aces = dealer_aces - 1
+        counter = counter +1
+    
+    # Calculate who won and store results in Hit or Stand matrices
+    if player_hand > 21:
+        dealer_won = dealer_won + 1
+        if decision == "hit":
+            w = hitArray[i_dealer_hand][i_player_hand][0]
+            l = hitArray[i_dealer_hand][i_player_hand][1]
+            t = hitArray[i_dealer_hand][i_player_hand][2]
+            l = l + 1
+            hitArray[i_dealer_hand][i_player_hand] = w,l,t
+            
+        else: 
+            w = standArray[i_dealer_hand][i_player_hand][0]
+            l = standArray[i_dealer_hand][i_player_hand][1]
+            t = standArray[i_dealer_hand][i_player_hand][2]
+            l = l + 1
+            standArray[i_dealer_hand][i_player_hand] = w,l,t
+            
+    else:
+        if dealer_hand > 21:
+            player_won = player_won + 1
+            if decision == "hit":
+                w = hitArray[i_dealer_hand][i_player_hand][0]
+                l = hitArray[i_dealer_hand][i_player_hand][1]
+                t = hitArray[i_dealer_hand][i_player_hand][2]
+                w = w + 1
+                hitArray[i_dealer_hand][i_player_hand] = w,l,t
+                
+            else:
+                w = standArray[i_dealer_hand][i_player_hand][0]
+                l = standArray[i_dealer_hand][i_player_hand][1]
+                t = standArray[i_dealer_hand][i_player_hand][2]
+                w = w + 1
+                standArray[i_dealer_hand][i_player_hand] = w,l,t
+                
+        else:
+            if player_hand > dealer_hand:
+                player_won = player_won + 1
+                if decision == "hit":
+                    w = hitArray[i_dealer_hand][i_player_hand][0]
+                    l = hitArray[i_dealer_hand][i_player_hand][1]
+                    t = hitArray[i_dealer_hand][i_player_hand][2]
+                    w = w + 1
+                    hitArray[i_dealer_hand][i_player_hand] = w,l,t
+                    
+                else:
+                    w = standArray[i_dealer_hand][i_player_hand][0]
+                    l = standArray[i_dealer_hand][i_player_hand][1]
+                    t = standArray[i_dealer_hand][i_player_hand][2]
+                    w = w + 1
+                    standArray[i_dealer_hand][i_player_hand] = w,l,t
+                    
+            else:
+                if player_hand < dealer_hand:
+                    dealer_won = dealer_won + 1
+                    if decision == "hit":
+                        w = hitArray[i_dealer_hand][i_player_hand][0]
+                        l = hitArray[i_dealer_hand][i_player_hand][1]
+                        t = hitArray[i_dealer_hand][i_player_hand][2]
+                        l = l + 1
+                        hitArray[i_dealer_hand][i_player_hand] = w,l,t
+                        
+                    else:
+                        w = standArray[i_dealer_hand][i_player_hand][0]
+                        l = standArray[i_dealer_hand][i_player_hand][1]
+                        t = standArray[i_dealer_hand][i_player_hand][2]
+                        l = l + 1
+                        standArray[i_dealer_hand][i_player_hand] = w,l,t
+                        
+                else:
+                    if player_hand == dealer_hand:
+                        ties = ties +1
+                        if decision == "hit":
+                            w = hitArray[i_dealer_hand][i_player_hand][0]
+                            l = hitArray[i_dealer_hand][i_player_hand][1]
+                            t = hitArray[i_dealer_hand][i_player_hand][2]
+                            t = t + 1
+                            hitArray[i_dealer_hand][i_player_hand] = w,l,t
+                            
+                        else:
+                            w = standArray[i_dealer_hand][i_player_hand][0]
+                            l = standArray[i_dealer_hand][i_player_hand][1]
+                            t = standArray[i_dealer_hand][i_player_hand][2]
+                            t = t + 1
+                            standArray[i_dealer_hand][i_player_hand] = w,l,t
+                            
+# Print final results
+for i in range(len(hitArray)):
+ for j in range(len(hitArray[i])):
+    print('Dealer card :',i+2,'Player Starting cards :',j+4)
+    print('Hit :', hitArray[i][j])
+    print('Stand :', standArray[i][j])
+
+print('Player Won: ', player_won, (player_won /(player_won + dealer_won + ties)))
+print('Dealer Won: ', dealer_won, (dealer_won /(player_won + dealer_won + ties)))
+print('Ties: ', ties, (ties /(player_won + dealer_won + ties)))
+
